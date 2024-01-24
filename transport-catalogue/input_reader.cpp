@@ -5,6 +5,7 @@
 #include <iterator>
 #include <iostream>
 #include <tuple>
+#include <iostream>
 
 namespace input {
     namespace parse {
@@ -90,6 +91,41 @@ namespace input {
                     std::string(line.substr(not_space, colon_pos - not_space)),
                     std::string(line.substr(colon_pos + 1))};
         }
+        
+        //Парсит строку вида "Xm to Stop"
+        std::pair<std::string_view,int> Distance (std::string_view line){
+            auto not_space = line.find_first_not_of(' ');
+            auto m_point = line.find('m');
+            int distance = std::stoi(std::string(line.substr(not_space, m_point - not_space)));
+            
+            auto point = line.find('o');
+            not_space = line.find_first_not_of(' ',point+1);
+            point = line.find(',');
+            std::string_view stop = line.substr(not_space,point-not_space);
+            return std::make_pair(stop,distance);
+        }
+
+        //Парсит описание остановки
+        command::StopDescription Stop (std::string_view line) {
+            command::StopDescription this_stop;
+            auto not_space = line.find_first_not_of(' ');
+            auto comma1 = line.find(',');
+            auto comma2 = line.find(',',comma1+1);
+            this_stop.coordinates = parse::Coordinates(line.substr(not_space,comma2-not_space));
+            if (comma2 == line.npos) {
+                return this_stop;
+            }
+            std::size_t prev = comma2;
+            std::size_t comma = prev;
+            while (comma != line.npos){
+                comma = line.find(',',prev+1);
+                this_stop.distances.push_back(Distance(line.substr(prev+1,comma-prev)));
+                prev = comma;
+            }
+            return this_stop;
+            
+        }
+    
     }
     
     void Reader::ParseLine(std::string_view line) {
@@ -102,17 +138,24 @@ namespace input {
     void Reader::ApplyCommands([[maybe_unused]] transport::Catalogue& catalogue) const {
         std::vector<std::pair<std::string,geo::Coordinates>> stop_commands;
         std::vector<std::pair<std::string,std::vector<std::string>>> bus_commands;
-        
+        std::map<std::pair<std::string,std::string>,int> distances;
+
         std::string stop_name;
-        geo::Coordinates stop_coordinates;
         std::string bus_name;
         std::vector<std::string> bus_stops;
+        
+
         for (auto command : commands_){
             if (command.command == "Stop"){
+                command::StopDescription stop_description;
                 stop_name = command.id;
-                stop_coordinates = parse::Coordinates(command.description);
-                stop_commands.push_back({stop_name,stop_coordinates});
-            } else if (command.command == "Bus"){
+                stop_description = parse::Stop(command.description);
+                for (const auto& [stop,distance] : stop_description.distances){
+                    distances[std::make_pair(stop_name,std::string(stop))] = distance;
+                }
+                stop_commands.push_back(std::make_pair(stop_name,stop_description.coordinates));
+            } 
+            else if (command.command == "Bus"){
                 bus_name = command.id;
                 for (std::string_view stop : parse::Route(command.description)){
                     bus_stops.push_back(std::string(stop));
@@ -125,6 +168,8 @@ namespace input {
         for (auto [name,coordinates] : stop_commands){
             catalogue.AddStop(name,coordinates);
         }
+
+        catalogue.AddDistances(distances);
 
         for (auto [name,stops] : bus_commands){
             catalogue.AddBus(name,stops);

@@ -22,7 +22,13 @@ namespace input{
             std::string id;           // id маршрута или остановки
             std::string description;  // Параметры команды
         };
+
+        struct StopDescription {
+            geo::Coordinates coordinates;
+            std::vector<std::pair<std::string_view,int>> distances;
+        };
     }
+
     class Reader {
     public:
 

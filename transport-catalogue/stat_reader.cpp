@@ -16,10 +16,12 @@ namespace stat_reader {
                 int stops = transport_catalogue.GetBus(std::string(bus_name)).value()->stops_count;
                 int unique = transport_catalogue.GetBus(std::string(bus_name)).value()->unique_stops;
                 double length = transport_catalogue.GetBus(std::string(bus_name)).value()->length;
+                double curvature = transport_catalogue.GetBus(std::string(bus_name)).value()->curvature;
 
                 output << stops << " stops on route, "
                         << unique << " unique stops, "
-                        << length << " route length" << std::endl;
+                        << length << " route length, " 
+                        << curvature << " curvature" << std::endl;
             }
             else {
                 output << "not found" << std::endl;

@@ -3,11 +3,14 @@
 
 #include "input_reader.h"
 #include "stat_reader.h"
-#include "t_c_tester.h"
+//#include "t_c_tester.h"
 
 using namespace std;
 
 int main() {
+    
+    //t_c_tester::Test3();
+
     transport::Catalogue catalogue;
 
     int base_request_count;
@@ -30,7 +33,4 @@ int main() {
         getline(cin, line);
         stat_reader::ParseAndPrint(catalogue, line, cout);
     }
-
-    t_c_tester::Test1();
-    t_c_tester::Test2();
 }

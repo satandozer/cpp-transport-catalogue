@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <optional>
 #include <set>
+#include <map>
 #include "geo.h"
 
 namespace transport {
@@ -33,8 +34,20 @@ namespace transport {
 				std::vector<Stop*> stops;
 				int stops_count = 0;
 				int unique_stops = 0;
-				double length = 0.0;	
-			};				
+				int length = 0;	
+				double geo_length = 0.0;
+				double curvature = 0.0;
+			};
+
+		struct StopPairHasher {
+			public:
+				size_t operator()(const std::pair<data::Stop*,data::Stop*>& stop_pair)const{
+					std::hash<std::string> hash_;
+					std::size_t hash1 = hash_(stop_pair.first->name);
+					std::size_t hash2 = hash_(stop_pair.second->name);
+					return (hash1 + 11*hash2);
+				}
+		};
 	}
 
 	class Catalogue {	
@@ -43,6 +56,8 @@ namespace transport {
 		void AddStop(const std::string& name, const geo::Coordinates& coordinates_);
 		
 		void AddBus(const std::string& name, const std::vector<std::string>& stops);
+
+		void AddDistances(const std::map<std::pair<std::string,std::string>,int>& distances);
 
 		std::optional<data::Stop*> GetStop(const std::string& stop_name) const;
 
@@ -56,6 +71,7 @@ namespace transport {
 		std::deque<data::Bus> buses_;
 		std::unordered_map<std::string,data::Bus*> buses_id_;
 
+		std::unordered_map<std::pair<data::Stop*,data::Stop*>,int,data::StopPairHasher> distances_;
 	};
 }
 
