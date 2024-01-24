@@ -31,15 +31,17 @@ namespace input{
 
     class Reader {
     public:
+        //Осуществляет ввод данных из входного потока
+        void ReadData(std::istream& input, transport::Catalogue& catalogue);
+
+    private:
+        std::vector<command::Description> commands_;
 
         //Парсит строку в структуру CommandDescription и сохраняет результат в commands_
         void ParseLine(std::string_view line);
 
         //Наполняет данными транспортный справочник, используя команды из commands_
         void ApplyCommands(transport::Catalogue& catalogue) const;
-
-    private:
-        std::vector<command::Description> commands_;
     };
 }
 

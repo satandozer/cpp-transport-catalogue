@@ -135,10 +135,22 @@ namespace input {
         }
     }
 
+     void Reader::ReadData(std::istream& input, transport::Catalogue& catalogue) {
+            int base_request_count;
+            input >> base_request_count >> std::ws;
+            for (int i = 0; i < base_request_count; ++i) {
+                std::string line;
+                getline(input, line);
+                ParseLine(line);
+            }
+            ApplyCommands(catalogue);
+
+    }
+
     void Reader::ApplyCommands([[maybe_unused]] transport::Catalogue& catalogue) const {
         std::vector<std::pair<std::string,geo::Coordinates>> stop_commands;
         std::vector<std::pair<std::string,std::vector<std::string>>> bus_commands;
-        std::map<std::pair<std::string,std::string>,int> distances;
+        std::unordered_map<std::pair<std::string,std::string>,int,transport::data::PairHasher> distances;
 
         std::string stop_name;
         std::string bus_name;

@@ -48,6 +48,16 @@ namespace transport {
 					return (hash1 + 11*hash2);
 				}
 		};
+
+		struct PairHasher {
+			public:
+				size_t operator()(const std::pair<std::string,std::string>& stop_pair)const{
+					std::hash<std::string> hash_;
+					std::size_t hash1 = hash_(stop_pair.first);
+					std::size_t hash2 = hash_(stop_pair.second);
+					return (hash1 + 7*hash2);
+				}
+		};
 	}
 
 	class Catalogue {	
@@ -57,7 +67,7 @@ namespace transport {
 		
 		void AddBus(const std::string& name, const std::vector<std::string>& stops);
 
-		void AddDistances(const std::map<std::pair<std::string,std::string>,int>& distances);
+		void AddDistances(const std::unordered_map<std::pair<std::string,std::string>,int,data::PairHasher>& distances);
 
 		std::optional<data::Stop*> GetStop(const std::string& stop_name) const;
 

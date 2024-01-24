@@ -15,7 +15,7 @@ namespace transport{
         stops_id_.insert({new_name,stop_pointer});
     }
 
-    void Catalogue::AddDistances(const std::map<std::pair<std::string,std::string>,int>& distances){
+    void Catalogue::AddDistances(const std::unordered_map<std::pair<std::string,std::string>,int,data::PairHasher>& distances){
         for (const auto& [stop_pair,dst] : distances){
             Stop* stop1 = stops_id_.at(stop_pair.first);
             Stop* stop2 = stops_id_.at(stop_pair.second);
@@ -54,7 +54,7 @@ namespace transport{
             prev_stop = stop;
         }
         unique_count = static_cast<int>(unique_stops.size());
-        double curvature = (length + 0.0)/(geo_length + 0.0);
+        double curvature = static_cast<double>(length)/geo_length;
         buses_.push_back({name,new_bus_stops,stops_count,unique_count,length,geo_length,curvature});
         Bus* bus_pointer = &buses_.back();
         buses_id_.insert({name,bus_pointer});
