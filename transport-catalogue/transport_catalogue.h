@@ -5,83 +5,49 @@
 #include <deque>
 #include <unordered_map>
 #include <optional>
-#include <set>
+#include <variant>
 #include <map>
-#include "geo.h"
+#include "domain.h"
 
 namespace transport {
-	namespace data {
-			struct Stop {
-	
-				Stop(const std::string& name_, const geo::Coordinates& coordinates_)
-					: name(name_)
-					, coordinates(coordinates_){}	
 
-				Stop(const std::string& name_, const double& latitude_, const double& longitude_)
-					: name(name_){
-						coordinates.lat = latitude_;
-						coordinates.lng = longitude_;
-					}
+	using domain::Stop;
+	using domain::Bus;
+	using domain::StopPairHasher;
+	using domain::PairHasher;
+	using domain::DistancesStopMap;
+	using domain::DistancesStringMap;
 
-				std::string name = "";
-				geo::Coordinates coordinates;
-				std::set<std::string_view> buses;
-			};
+	class Catalogue {
 
-			struct Bus {
-
-				std::string name = "";
-				std::vector<Stop*> stops;
-				int stops_count = 0;
-				int unique_stops = 0;
-				int length = 0;	
-				double geo_length = 0.0;
-				double curvature = 0.0;
-			};
-
-		struct StopPairHasher {
-			public:
-				size_t operator()(const std::pair<data::Stop*,data::Stop*>& stop_pair)const{
-					std::hash<std::string> hash_;
-					std::size_t hash1 = hash_(stop_pair.first->name);
-					std::size_t hash2 = hash_(stop_pair.second->name);
-					return (hash1 + 11*hash2);
-				}
-		};
-
-		struct PairHasher {
-			public:
-				size_t operator()(const std::pair<std::string,std::string>& stop_pair)const{
-					std::hash<std::string> hash_;
-					std::size_t hash1 = hash_(stop_pair.first);
-					std::size_t hash2 = hash_(stop_pair.second);
-					return (hash1 + 7*hash2);
-				}
-		};
-	}
-
-	class Catalogue {	
 		public:
 
-		void AddStop(const std::string& name, const geo::Coordinates& coordinates_);
+		void AddStop(Stop&& stop);
 		
-		void AddBus(const std::string& name, const std::vector<std::string>& stops);
+		Bus* AddBus(Bus&& bus);
 
-		void AddDistances(const std::unordered_map<std::pair<std::string,std::string>,int,data::PairHasher>& distances);
+		void AddDistances(const DistancesStringMap& distances );
 
-		std::optional<data::Stop*> GetStop(const std::string& stop_name) const;
+		std::optional<Stop*> GetStop(const std::string& stop_name) const;
 
-		std::optional<data::Bus*> GetBus(const std::string& bus_name) const;
+		std::optional<Bus*> GetBus(const std::string& bus_name) const;
+
+		std::optional<double> GetDistance(const std::string& first, const std::string& second) const;
+
+		std::vector<Bus*> GetAllBus() const;
+
+		std::vector<Stop*> GetAllStops() const; 
 
 		private:
 		
-		std::deque<data::Stop> stops_;
-		std::unordered_map<std::string_view,data::Stop*> stops_id_;
+		std::deque<Stop> stops_;
+		std::map<std::string_view,Stop*> stops_id_;
 		
-		std::deque<data::Bus> buses_;
-		std::unordered_map<std::string,data::Bus*> buses_id_;
+		std::deque<Bus> buses_;
+		std::map<std::string_view,Bus*> buses_id_;
 
-		std::unordered_map<std::pair<data::Stop*,data::Stop*>,int,data::StopPairHasher> distances_;
+		DistancesStopMap distances_;
 	};
+
 }
 
