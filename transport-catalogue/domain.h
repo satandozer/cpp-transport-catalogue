@@ -4,8 +4,10 @@
 #include <string>
 #include <set>
 #include <variant>
-
+#include <unordered_map>
 #include "geo.h"
+
+
 
 namespace domain {
         struct Stop {
@@ -46,6 +48,9 @@ namespace domain {
             size_t operator()(const std::pair<std::string,std::string>& stop_pair)const;
     };
 
+    typedef std::unordered_map<std::pair<std::string,std::string>,double,PairHasher> DistancesStringMap;
+    typedef std::unordered_map<std::pair<Stop*,Stop*>,double,StopPairHasher> DistancesStopMap;
+
     namespace command{
 
         struct BusDescription{
@@ -75,4 +80,11 @@ namespace domain {
             Bus* bus_data = nullptr;
         };
     }
+
+    struct ParsedInput {
+        std::vector<Stop> stop_commands;
+        std::vector<domain::command::BusDescription> bus_commands;
+        DistancesStringMap distances;
+        std::vector<domain::request::Command> requests;
+    };
 }

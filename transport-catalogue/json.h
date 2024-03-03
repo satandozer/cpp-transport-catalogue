@@ -20,11 +20,11 @@ public:
 };
 
 class Node {
+public:
 
     using Value = std::variant<std::nullptr_t,bool,int,double,std::string,Array,Dict>;
-
-public:
     Node() = default;
+    Node(Value var) : node_(var) {};
     Node(std::nullptr_t np) : node_(np) {}
     Node(bool value) : node_(value){}
     Node(int value) : node_(value){}

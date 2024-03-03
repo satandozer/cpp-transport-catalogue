@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <optional>
 #include <variant>
-#include <map>
+#include <algorithm>
 #include "domain.h"
 
 namespace transport {
@@ -15,6 +15,8 @@ namespace transport {
 	using domain::Bus;
 	using domain::StopPairHasher;
 	using domain::PairHasher;
+	using domain::DistancesStopMap;
+	using domain::DistancesStringMap;
 
 	class Catalogue {
 
@@ -24,7 +26,7 @@ namespace transport {
 		
 		Bus* AddBus(Bus&& bus);
 
-		void AddDistances(const std::unordered_map<std::pair<std::string,std::string>,double,PairHasher>& distances );
+		void AddDistances(const DistancesStringMap& distances );
 
 		std::optional<Stop*> GetStop(const std::string& stop_name) const;
 
@@ -36,34 +38,20 @@ namespace transport {
 
 		std::vector<Stop*> GetAllStops() const; 
 
+		void SortAll();
+
 		private:
 		
 		std::deque<Stop> stops_;
-		std::map<std::string_view,Stop*> stops_id_;
+		std::vector<Stop*> all_stops_;
+		std::unordered_map<std::string_view,Stop*> stops_id_;
 		
 		std::deque<Bus> buses_;
-		std::map<std::string_view,Bus*> buses_id_;
+		std::vector<Bus*> all_buses_;
+		std::unordered_map<std::string_view,Bus*> buses_id_;
 
-		std::unordered_map<std::pair<Stop*,Stop*>,double,StopPairHasher> distances_;
+		DistancesStopMap distances_;
 	};
 
-	class RequestProcessor {
-		public:
-			void SetCatalogue(Catalogue& catalogue);
-			void AddStopCommand(const std::string& name, 
-								const geo::Coordinates& coordinates_, 
-								const std::vector<std::pair<std::string,double>>& distances);
-			void AddBusCommand(const std::string& name, bool is_roundtrip, const std::vector<std::string>& stops);
-			void AddRequest (domain::request::Command);
-			void FillCatalogue();
-		protected:
-			std::vector<domain::request::Response> GetRequests();
-		private:
-			Catalogue* catalogue_;
-			std::vector<Stop> stop_commands_;
-			std::vector<domain::command::BusDescription> bus_commands_;
-			std::unordered_map<std::pair<std::string,std::string>,double,PairHasher> distances_;
-			std::vector<domain::request::Command> requests_;
-	};
 }
 

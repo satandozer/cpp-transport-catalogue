@@ -115,32 +115,33 @@ namespace renderer {
     struct UnderlayedText {
         UnderlayedText(){
             front_text.SetFontFamily("Verdana");
-            underlayer.SetFontFamily("Verdana");
-            underlayer.SetStrokeLineCap(svg::StrokeLineCap::ROUND);
-            underlayer.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+            underlayer.SetFontFamily("Verdana")
+                .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+                .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
         }
 
         UnderlayedText(const Settings& settings, TextType type){
             front_text.SetFontFamily("Verdana");
-            underlayer.SetFontFamily("Verdana");
-            underlayer.SetStrokeLineCap(svg::StrokeLineCap::ROUND);
-            underlayer.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-
-            underlayer.SetFillColor(settings.underlayer_color);
-            underlayer.SetStrokeColor(settings.underlayer_color);
-            underlayer.SetStrokeWidth(settings.underlayer_width);
+            underlayer.SetFontFamily("Verdana")
+                .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+                .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND)
+                .SetFillColor(settings.underlayer_color)
+                .SetStrokeColor(settings.underlayer_color)
+                .SetStrokeWidth(settings.underlayer_width);
 
             if (type == TextType::STOP){
-                front_text.SetFontSize(settings.stop_label_font_size);
-                front_text.SetOffset(settings.stop_label_offset);
-                underlayer.SetFontSize(settings.stop_label_font_size);
-                underlayer.SetOffset(settings.stop_label_offset);
-                front_text.SetFillColor("black");
+                front_text.SetFontSize(settings.stop_label_font_size)
+                    .SetOffset(settings.stop_label_offset)
+                    .SetFillColor("black");
+                underlayer.SetFontSize(settings.stop_label_font_size)
+                    .SetOffset(settings.stop_label_offset);
+
             } else if (type == TextType::BUS){
-                front_text.SetFontSize(settings.bus_label_font_size);
-                front_text.SetOffset(settings.bus_label_offset);
-                underlayer.SetFontSize(settings.bus_label_font_size);
-                underlayer.SetOffset(settings.bus_label_offset);
+                front_text.SetFontSize(settings.bus_label_font_size)
+                    .SetOffset(settings.bus_label_offset);
+
+                underlayer.SetFontSize(settings.bus_label_font_size)
+                    .SetOffset(settings.bus_label_offset);
             }
         }
 
