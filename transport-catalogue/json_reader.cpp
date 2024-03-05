@@ -151,43 +151,61 @@ namespace json_reader {
 // ---------- JSON Printing ----------
 
     json::Document JsonReader::PrintJson(std::ostream& output, const std::vector<domain::request::Response>& requests) const {
-        json::Array output_array;
+        json::Array response_arr;
         for (auto response : requests){
-            json::Dict response_print;
-            response_print["request_id"] = json::Node(response.id);
-
+            json::Builder dict_builder;
+            //response_dict["request_id"] = json::Node(response.id);
+            dict_builder.StartDict().Key("request_id").Value(response.id);
             if (response.stop_data == nullptr && response.bus_data == nullptr && response.type != domain::request::Type::MAP){
-                response_print["error_message"] = json::Node(std::string("not found"));
+                //response_dict["error_message"] = json::Node(std::string("not found"));
+                dict_builder.Key("error_message").Value(std::string("not found"));
             } else if (response.type == domain::request::Type::STOP){
-                PrintStop(response_print,response.stop_data);
+                PrintStop(dict_builder, response.stop_data);
             } else if (response.type == domain::request::Type::BUS){
-                PrintBus(response_print,response.bus_data);
+                PrintBus(dict_builder,response.bus_data);
             } else if (response.type == domain::request::Type::MAP){
-                PrintMap(response_print);
+                PrintMap(dict_builder);
             }
-            output_array.push_back(json::Node(response_print));
+            response_arr.push_back(dict_builder.EndDict().Build().AsMap());
+
         }
-        json::Print(json::Document(json::Node(output_array)),output);
-        return json::Document(json::Node(output_array));
+        json::Builder builder;
+        builder.Value(response_arr);
+        json::Print(json::Document(builder.Build()),output);
+        return json::Document(builder.Build());
     }
 
-    void JsonReader::PrintStop(json::Dict& response, domain::Stop* stop) const{
-        json::Array buses;
+    void JsonReader::PrintStop(json::Builder& builder, domain::Stop* stop) const{
+        /*json::Array buses;
         for (auto bus : stop->buses){
             buses.push_back(json::Node(std::string(bus)));
         }
-        response["buses"] = json::Node(buses);
+        response_dict["buses"] = json::Node(buses);*/
+        builder.Key("buses").StartArray();
+        for (auto bus : stop->buses){
+            builder.Value((std::string(bus)));
+        }
+        builder.EndArray();
     }
-    void JsonReader::PrintBus(json::Dict& response, domain::Bus* bus) const{
-        response["curvature"] = json::Node(bus->curvature);
-        response["route_length"] = json::Node(bus->length);
-        response["stop_count"] = json::Node(bus->stops_count);
-        response["unique_stop_count"] = json::Node(bus->unique_stops);
+    void JsonReader::PrintBus(json::Builder& builder, domain::Bus* bus) const{
+        /*
+        response_dict["curvature"] = json::Node(bus->curvature);
+        response_dict["route_length"] = json::Node(bus->length);
+        response_dict["stop_count"] = json::Node(bus->stops_count);
+        response_dict["unique_stop_count"] = json::Node(bus->unique_stops);
+        */
+        builder
+            .Key("curvature")           .Value(bus->curvature)
+            .Key("route_length")        .Value(bus->length)
+            .Key("stop_count")          .Value(bus->stops_count)
+            .Key("unique_stop_count")   .Value(bus->unique_stops);
+
     }
-    void JsonReader::PrintMap(json::Dict& response) const {
+    void JsonReader::PrintMap(json::Builder& builder) const {
         std::ostringstream output;
         map_renderer_->RenderMap(output);
-        response["map"] = json::Node(output.str());
+        builder.Key("map").Value(output.str());
+        //response_dict["map"] = json::Node(output.str());
     }
 
 }

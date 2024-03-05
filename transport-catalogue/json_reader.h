@@ -1,5 +1,5 @@
 #pragma once
-#include "json.h"
+#include "json_builder.h"
 #include "transport_catalogue.h"
 #include "map_renderer.h"
 
@@ -33,9 +33,9 @@ class JsonReader {
         renderer::Settings ParseSettings(const json::Dict& request) const;
         svg::Color ParseColor(const json::Node& color_node) const;
 
-        void PrintStop(json::Dict& response, domain::Stop* stop) const;
-        void PrintBus(json::Dict& response, domain::Bus* bus) const;
-        void PrintMap(json::Dict& response) const;
+        void PrintStop(json::Builder& builder, domain::Stop* stop) const;
+        void PrintBus(json::Builder& builder, domain::Bus* bus) const;
+        void PrintMap(json::Builder& builder) const;
 };
 
 }

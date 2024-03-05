@@ -64,10 +64,10 @@ namespace renderer {
     svg::Polyline MapRenderer::RenderBus(domain::Bus* bus, const SphereProjector& project) const {
         svg::Polyline bus_line;
 
-        bus_line.SetStrokeWidth(settings_.line_width);
-        bus_line.SetFillColor(svg::NoneColor);
-        bus_line.SetStrokeLineCap(svg::StrokeLineCap::ROUND);
-        bus_line.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+        bus_line.SetStrokeWidth(settings_.line_width)
+            .SetFillColor(svg::NoneColor)
+            .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+            .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 
         for (auto stop : bus->stops){
             svg::Point p = project(stop->coordinates);
@@ -83,9 +83,9 @@ namespace renderer {
 
     svg::Circle MapRenderer::RenderStop(domain::Stop* stop, const SphereProjector& project) const{
         svg::Circle stop_label;
-        stop_label.SetRadius(settings_.stop_radius);
-        stop_label.SetFillColor("white");
-        stop_label.SetCenter(project(stop->coordinates));
+        stop_label.SetRadius(settings_.stop_radius)
+            .SetFillColor("white")
+        .SetCenter(project(stop->coordinates));
         return stop_label;
     }
 

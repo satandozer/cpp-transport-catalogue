@@ -5,7 +5,6 @@
 #include "json_reader.h"
 #include "map_renderer.h"
 
-#include <map>
 
 
 namespace request {
@@ -20,7 +19,6 @@ namespace request {
     using transport::Catalogue;
     using json_reader::JsonReader;
     using renderer::MapRenderer;
-
 
     class Handler {
     public:

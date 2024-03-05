@@ -50,6 +50,7 @@ namespace request {
                 stop->buses.insert(bus_pointer->name);
             }
         }
+        catalogue_->SortAll();
     }
 
     std::vector<domain::request::Response> Handler::GetRequests() const {

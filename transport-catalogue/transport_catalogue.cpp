@@ -58,19 +58,28 @@ namespace transport{
     }
 
     std::vector<Bus*> Catalogue::GetAllBus() const {
-        std::vector<Bus*> output;
-        for (auto [name,bus]: buses_id_) {
-            output.push_back(bus);
-        }
-        return output;
+        return all_buses_;
     }
 
     std::vector<Stop*> Catalogue::GetAllStops() const {
-        std::vector<Stop*> output;
-        for (auto [name,stop]: stops_id_) {
-            output.push_back(stop);
+        return all_stops_;
+    }
+
+    void Catalogue::SortAll() {
+        for (auto [name,bus]: buses_id_) {
+            all_buses_.push_back(bus);
         }
-        return output;
+        std::sort(all_buses_.begin(), all_buses_.end(),[](Bus* lhs, Bus* rhs){
+            return lexicographical_compare(lhs->name.begin(),lhs->name.end(),
+                        rhs->name.begin(),rhs->name.end());
+        });
+        for (auto [name,stop]: stops_id_) {
+            all_stops_.push_back(stop);
+        }
+        std::sort(all_stops_.begin(),all_stops_.end(),[](Stop* lhs, Stop* rhs){
+            return lexicographical_compare(lhs->name.begin(),lhs->name.end(),
+                        rhs->name.begin(),rhs->name.end());
+        });
     }
 
 }
