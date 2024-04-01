@@ -51,6 +51,7 @@ namespace request {
             }
         }
         catalogue_->SortAll();
+        router_->LoadCatalogue();
     }
 
     std::vector<domain::request::Response> Handler::GetRequests() const {
@@ -64,16 +65,22 @@ namespace request {
                     response.stop_data = stop.value();
                     response.type = domain::request::Type::STOP;
                 }
-            } 
-            else if (request.type == domain::request::Type::BUS) {
+            } else if (request.type == domain::request::Type::BUS) {
                 auto bus = catalogue_->GetBus(request.name);
                 if (bus.has_value()){
                     response.bus_data = bus.value();
                     response.type = domain::request::Type::BUS;
                 }
-            }
-            else if (request.type == domain::request::Type::MAP) {
+            } else if (request.type == domain::request::Type::MAP) {
                 response.type = domain::request::Type::MAP;
+            } else if (request.type == domain::request::Type::ROUTE) {
+                auto stop = catalogue_->GetStop(request.name);
+                auto stop_to = catalogue_->GetStop(request.to_name.value());
+                if (stop.has_value() && stop_to.has_value()){
+                    response.type = domain::request::Type::ROUTE;
+                    response.stop_data = stop.value();
+                    response.stop_to = stop_to.value();
+                }
             }
             output.push_back(response);
         }
@@ -87,6 +94,7 @@ namespace request {
     void Handler::PrintJson(std::ostream& output) const{
         std::vector<domain::request::Response> responses = GetRequests();
         json_reader_->PrintJson(output,responses);
+        
     }
     void Handler::RenderMap(std::ostream& output) const{
         renderer_->RenderMap(output);

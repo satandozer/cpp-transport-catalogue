@@ -13,10 +13,6 @@ namespace json {
             class DictItemContext;
             class DictValueContext;
 
-            // Ответ на комментарий на ревью: "Слишком много ValueContext"
-            // Здесь был указан класс ArrayValueContext, у которого не было реализации (забыл убрать лишнее)
-            // Если это должно быть не так, прошу уточнить, что именно требуется
-
             friend class BaseContext;
             friend class ArrayContext;
             friend class KeyItemContext;

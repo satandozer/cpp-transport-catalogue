@@ -11,6 +11,10 @@ namespace json_reader {
     void JsonReader::SetRenderer(renderer::MapRenderer& map_renderer) {
         map_renderer_ = &map_renderer;
     }
+
+    void JsonReader::SetRouter(transport_router::TransportRouter& router) {
+        router_ = &router;
+    }
     
     void JsonReader::SetCatalogue(transport::Catalogue& catalogue) {
         catalogue_ = &catalogue;    
@@ -34,17 +38,26 @@ namespace json_reader {
         }
         if (requests.GetRoot().AsMap().count("render_settings")) {
             json::Dict svg_settings = requests.GetRoot().AsMap().at("render_settings").AsMap();
-            map_renderer_->SetSettings(ParseSettings(svg_settings));
+            map_renderer_->SetSettings(ParseMapSettings(svg_settings));
+        }
+        if (requests.GetRoot().AsMap().count("routing_settings")) {
+            json::Dict route_settings = requests.GetRoot().AsMap().at("routing_settings").AsMap();
+            router_->SetSettings(ParseRouteSettings(route_settings));
         }
         for (auto& request : stat){
             json::Dict data = request.AsMap();
             if (data.at("type").AsString() == "Stop") {
-                AddRequest({data.at("id").AsInt(),data.at("name").AsString(),domain::request::Type::STOP});
+                AddRequest({data.at("id").AsInt(),data.at("name").AsString(),domain::request::Type::STOP,""});
             } else if (data.at("type").AsString() == "Bus") {
-                AddRequest({data.at("id").AsInt(),data.at("name").AsString(),domain::request::Type::BUS});
+                AddRequest({data.at("id").AsInt(),data.at("name").AsString(),domain::request::Type::BUS,""});
             } else if (data.at("type").AsString() == "Map") {
-                AddRequest({data.at("id").AsInt(),"",domain::request::Type::MAP});
-            }        
+                AddRequest({data.at("id").AsInt(),"",domain::request::Type::MAP,""});
+            } else if (data.at("type").AsString() == "Route") {
+                AddRequest({data.at("id").AsInt(),
+                            data.at("from").AsString(),
+                            domain::request::Type::ROUTE,
+                            data.at("to").AsString()});
+            }
         }
         return *commands_ptr_;
     }
@@ -80,7 +93,7 @@ namespace json_reader {
         return request.at("is_roundtrip").AsBool();
     }
 
-    renderer::Settings JsonReader::ParseSettings(const json::Dict& request) const {
+    renderer::Settings JsonReader::ParseMapSettings(const json::Dict& request) const {
         renderer::Settings output;
 
         output.width = request.at("width").AsDouble();
@@ -148,6 +161,13 @@ namespace json_reader {
         commands_ptr_->requests.push_back(request);
     } 
 
+    domain::router_data::Settings JsonReader::ParseRouteSettings(const json::Dict& request) const {
+        domain::router_data::Settings output;
+        output.bus_wait_time = request.at("bus_wait_time").AsInt();
+        output.velocity = request.at("bus_velocity").AsDouble();
+        return output;
+    }
+
 // ---------- JSON Printing ----------
 
     json::Document JsonReader::PrintJson(std::ostream& output, const std::vector<domain::request::Response>& requests) const {
@@ -165,6 +185,8 @@ namespace json_reader {
                 PrintBus(dict_builder,response.bus_data);
             } else if (response.type == domain::request::Type::MAP){
                 PrintMap(dict_builder);
+            } else if (response.type == domain::request::Type::ROUTE){
+                PrintRoute(dict_builder, response.stop_data, response.stop_to);
             }
             response_arr.push_back(dict_builder.EndDict().Build().AsMap());
 
@@ -206,6 +228,32 @@ namespace json_reader {
         map_renderer_->RenderMap(output);
         builder.Key("map").Value(output.str());
         //response_dict["map"] = json::Node(output.str());
+    }
+    
+    void JsonReader::PrintRoute(json::Builder& builder, domain::Stop* stop_from, domain::Stop* stop_to) const {
+        auto response = router_->GetRoute(stop_from,stop_to);
+        if (!response.has_value()){
+            builder.Key("error_message").Value(std::string("not found"));
+            return;
+        }
+        builder
+            .Key("total_time")  .Value(response.value().total_time)
+            .Key("items")       .StartArray();
+        for (auto item : response.value().items){
+            builder.StartDict().Key("time").Value(item.time);
+            if (item.type == domain::router_data::EdgeType::WAIT){
+                builder
+                    .Key("type")        .Value("Wait")
+                    .Key("stop_name")   .Value(item.name);
+            } else if (item.type == domain::router_data::EdgeType::BUS){
+                builder
+                    .Key("type")        .Value("Bus")
+                    .Key("bus")         .Value(item.name)
+                    .Key("span_count")  .Value(item.span_count.value());
+            }
+            builder.EndDict();
+        }
+        builder.EndArray();
     }
 
 }

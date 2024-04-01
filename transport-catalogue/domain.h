@@ -4,10 +4,11 @@
 #include <string>
 #include <set>
 #include <variant>
+#include <optional>
 #include <unordered_map>
+
 #include "geo.h"
-
-
+#include "graph.h"
 
 namespace domain {
         struct Stop {
@@ -60,17 +61,67 @@ namespace domain {
         };
     }
 
+    namespace router_data {
+        using namespace graph;
+        using namespace domain;
+
+        using Time = double;
+
+        enum class EdgeType {
+            WAIT,
+            BUS
+        };
+
+        struct Settings {
+            int bus_wait_time = 6;
+            double velocity = 40;
+        };
+        
+        struct StopVertex {
+            VertexId id;
+            Stop* stop = nullptr;
+        };
+
+        struct StopVertexPair {
+            StopVertex stop_begin;
+            StopVertex stop_end;
+        };
+
+        struct EdgeData {
+            EdgeType type;
+            int span_count = 0;
+            Bus* bus = nullptr;
+            Stop* stop_begin = nullptr;
+            Stop* stop_end = nullptr;
+        };
+
+        struct ResponseItem {
+            EdgeType type;
+            std::string name;
+            std::optional<int> span_count;
+            Time time;
+        };
+
+        struct Response{
+            Time total_time;
+            std::vector<ResponseItem> items; 
+        };
+        
+    }
+
     namespace request {
         enum class Type {
             STOP,
             BUS,
-            MAP
+            MAP,
+            ROUTE
         };
 
         struct Command{
             int id;
             std::string name;
             request::Type type;
+            std::optional<std::string> to_name;
         };
 
         struct Response{
@@ -78,6 +129,7 @@ namespace domain {
             request::Type type;
             Stop* stop_data = nullptr;
             Bus* bus_data = nullptr;
+            Stop* stop_to = nullptr;
         };
     }
 
@@ -87,4 +139,5 @@ namespace domain {
         DistancesStringMap distances;
         std::vector<domain::request::Command> requests;
     };
+
 }
